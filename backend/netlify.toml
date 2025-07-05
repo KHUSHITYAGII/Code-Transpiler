@@ -1,0 +1,9 @@
+# Create netlify.toml file in your repository root
+echo '[build]
+  command = "cd frontend && npm install && npm run build"
+  publish = "frontend/build"' > netlify.toml
+
+# Add and commit the file
+git add netlify.toml
+git commit -m "Add Netlify build configuration"
+git push origin master
