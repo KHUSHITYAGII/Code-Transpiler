@@ -1,12 +1,12 @@
-@"
 import React, { useState } from "react";
+
 function App() {
   const [code, setCode] = useState("");
   const [sourceLang, setSourceLang] = useState("python");
   const [targetLang, setTargetLang] = useState("cpp");
   const [output, setOutput] = useState("");
   const [error, setError] = useState("");
-  // Function to handle conversion
+
   const handleConvert = async () => {
     if (!code.trim()) {
       setError("Please enter valid code.");
@@ -29,15 +29,18 @@ function App() {
       setError("Failed to connect to the server.");
     }
   };
+
   return (
     <div className="container">
       <h1>Bidirectional Code Converter</h1>
+
       {/* Input Section */}
       <textarea
         placeholder="Enter your code here..."
         value={code}
         onChange={(e) => setCode(e.target.value)}
-      ></textarea>
+      />
+
       {/* Language Selection */}
       <div style={{ display: "flex", justifyContent: "space-between", marginTop: "10px" }}>
         <select value={sourceLang} onChange={(e) => setSourceLang(e.target.value)}>
@@ -45,17 +48,20 @@ function App() {
           <option value="cpp">C++</option>
           <option value="java">Java</option>
         </select>
-        <span>âž¡ï¸</span>
+        <span>➡️</span>
         <select value={targetLang} onChange={(e) => setTargetLang(e.target.value)}>
           <option value="cpp">C++</option>
           <option value="java">Java</option>
           <option value="python">Python</option>
         </select>
       </div>
+
       {/* Convert Button */}
       <button onClick={handleConvert}>Convert</button>
+
       {/* Error Notification */}
       {error && <p className="error">{error}</p>}
+
       {/* Output Section */}
       <div className="output">
         <strong>Converted Code:</strong>
@@ -64,9 +70,5 @@ function App() {
     </div>
   );
 }
-export default App;
-"@ | Out-File -FilePath frontend/src/App.js -Encoding utf8
 
-git add frontend/src/App.js
-git commit -m "Remove unused ReactDOM import to fix build error"
-git push origin master
+export default App;
