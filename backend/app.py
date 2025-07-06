@@ -4,53 +4,35 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
 
+@app.route("/")  # ✅ This route is required for sanity check on Render
+def home():
+    return "Flask backend is running!"
+
 def python_to_cpp(code):
-    # Replace input statements
     code = code.replace("input(", "std::cin >> ")
-    
-    # Replace print statements
     code = code.replace("print(", "std::cout << ").replace(")", " << std::endl;")
-    # Replace if statements
     code = code.replace("if ", "if (").replace(":", ") {")
     code = code.replace("else:", "} else {")
     code = code.replace("elif ", "} else if (").replace(":", ") {")
-    
-    # Replace for loops
     code = code.replace("for ", "for (").replace(" in range(", "; ")
     code = code.replace("):", ") {")
-    
-    # Add closing braces for blocks
-    code += "\n}"  # Ensure all blocks are closed properly
-    
-    # Fix common issues with curly braces and semicolons
-    code = code.replace("<< std) {) {", "<< std::endl;")  # Fix misplaced braces
-    code = code.replace("std) {) {", "std::")  # Fix std:: prefix
-    code = code.replace("<< std::endl;endl;", "<< std::endl;")  # Remove redundant endl;
-    
+    code += "\n}"
+    code = code.replace("<< std) {) {", "<< std::endl;")
+    code = code.replace("std) {) {", "std::")
+    code = code.replace("<< std::endl;endl;", "<< std::endl;")
     return code
 
 def python_to_java(code):
-    # Replace print statements
     code = code.replace("print(", "System.out.println(").replace(")", ");")
-    
-    # Replace input statements
     code = code.replace("input(", "Scanner scanner = new Scanner(System.in); String ")
     code = code.replace(" = input()", " = scanner.nextLine();")
-    
-    # Replace if statements
     code = code.replace("if ", "if (").replace(":", ") {")
     code = code.replace("else:", "} else {")
     code = code.replace("elif ", "} else if (").replace(":", ") {")
-    
-    # Replace for loops
     code = code.replace("for ", "for (int ").replace(" in range(", "; ")
     code = code.replace("):", ") {")
-    
-    # Add closing braces for blocks
-    code += "\n}"  # Ensure all blocks are closed properly
-    
-    # Fix common issues with curly braces and semicolons
-    code = code.replace("<< std) {) {", ");")  # Fix misplaced braces
+    code += "\n}"
+    code = code.replace("<< std) {) {", ");")
     return code
 
 @app.route("/api/convert", methods=["POST"])
@@ -63,12 +45,12 @@ def convert():
     try:
         if source_lang == "python" and target_lang == "cpp":
             converted_code = python_to_cpp(code)
-            return jsonify({"convertedCode": converted_code})
         elif source_lang == "python" and target_lang == "java":
             converted_code = python_to_java(code)
-            return jsonify({"convertedCode": converted_code})
         else:
             return jsonify({"error": "Unsupported language conversion"}), 400
+
+        return jsonify({"convertedCode": converted_code})
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
