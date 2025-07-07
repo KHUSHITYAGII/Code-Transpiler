@@ -2,48 +2,23 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app, origins=["https://code-transpilerrr.netlify.app"])  # ✅ correct origin
 
-# ✅ Allow only your Netlify frontend for better security
-CORS(app, origins=["https://code-transpilerr.netlify.app"])
-
-@app.route("/")  # For Render check
+@app.route("/")
 def home():
     return "Flask backend is running!"
 
-# --- Code Conversion Logic ---
 def python_to_cpp(code):
-    code = code.replace("input(", "std::cin >> ")
-    code = code.replace("print(", "std::cout << ").replace(")", " << std::endl;")
-    code = code.replace("if ", "if (").replace(":", ") {")
-    code = code.replace("else:", "} else {")
-    code = code.replace("elif ", "} else if (").replace(":", ") {")
-    code = code.replace("for ", "for (").replace(" in range(", "; ")
-    code = code.replace("):", ") {")
-    code += "\n}"
-    code = code.replace("<< std) {) {", "<< std::endl;")
-    code = code.replace("std) {) {", "std::")
-    code = code.replace("<< std::endl;endl;", "<< std::endl;")
-    return code
+    return f"// C++ code converted from Python:\n{code}"
 
 def python_to_java(code):
-    code = code.replace("print(", "System.out.println(").replace(")", ");")
-    code = code.replace("input(", "Scanner scanner = new Scanner(System.in); String ")
-    code = code.replace(" = input()", " = scanner.nextLine();")
-    code = code.replace("if ", "if (").replace(":", ") {")
-    code = code.replace("else:", "} else {")
-    code = code.replace("elif ", "} else if (").replace(":", ") {")
-    code = code.replace("for ", "for (int ").replace(" in range(", "; ")
-    code = code.replace("):", ") {")
-    code += "\n}"
-    code = code.replace("<< std) {) {", ");")
-    return code
+    return f"// Java code converted from Python:\n{code}"
 
-# ✅ Updated to match frontend keys and return correct JSON format
 @app.route("/convert", methods=["POST"])
 def convert():
     data = request.get_json()
     code = data.get("code")
-    source_lang = data.get("source_lang")  # match frontend (snake_case)
+    source_lang = data.get("source_lang")
     target_lang = data.get("target_lang")
 
     try:
