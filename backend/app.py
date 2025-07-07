@@ -1,45 +1,99 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import re
 
 app = Flask(__name__)
-CORS(app, origins=["https://code-transpilerrr.netlify.app"])  # ✅ Match frontend domain
+CORS(app, origins=["https://code-transpilerrr.netlify.app"])  # ✅ correct origin
 
 @app.route("/")
 def home():
     return "Flask backend is running!"
 
-# --- Python to C++ Conversion Logic ---
 def python_to_cpp(code):
-    lines = code.split("\n")
-    converted_lines = ["// C++ code converted from Python:"]
+    lines = code.strip().split('\n')
+    cpp_lines = ["// C++ code converted from Python:"]
 
     for line in lines:
         line = line.strip()
 
-        # Handle variable assignment (e.g., x = 10)
-        match = re.match(r"(\w+)\s*=\s*(\d+)", line)
-        if match:
-            var, value = match.groups()
-            converted_lines.append(f"int {var} = {value};")
-            continue
-
-        # Handle print statements (e.g., print("value", x))
-        if line.startswith("print(") and line.endswith(")"):
+        if line.startswith("print("):
             content = line[6:-1]
-            parts = [p.strip() for p in content.split(",")]
-            cpp_print = 'std::cout << ' + ' << '.join(parts) + ' << std::endl;'
-            converted_lines.append(cpp_print)
-            continue
+            cpp_lines.append(f"std::cout << {content} << std::endl;")
 
-        # If line doesn't match, comment it
-        converted_lines.append(f"// {line}")
+        elif "input(" in line:
+            var = line.split("=")[0].strip()
+            cpp_lines.append(f"std::string {var};")
+            cpp_lines.append(f"std::cin >> {var};")
 
-    return "\n".join(converted_lines)
+        elif "=" in line:
+            var, val = line.split("=")
+            cpp_lines.append(f"int {var.strip()} = {val.strip()};")
 
-# --- Python to Java Placeholder ---
+        elif line.startswith("if "):
+            condition = line[3:-1].strip()
+            cpp_lines.append(f"if ({condition}) {{")
+
+        elif line.startswith("elif "):
+            condition = line[5:-1].strip()
+            cpp_lines.append(f"}} else if ({condition}) {{")
+
+        elif line.startswith("else"):
+            cpp_lines.append("} else {")
+
+        elif line.startswith("for "):
+            cpp_lines.append("// for-loops not yet implemented")
+
+        elif line == "":
+            cpp_lines.append("")
+
+        else:
+            cpp_lines.append(f"// {line}")
+
+    cpp_lines.append("}")
+    return "\n".join(cpp_lines)
+
 def python_to_java(code):
-    return f"// Java code converted from Python:\n{code}"
+    lines = code.strip().split('\n')
+    java_lines = ["// Java code converted from Python:", "public class Main {", "  public static void main(String[] args) {"]
+
+    for line in lines:
+        line = line.strip()
+
+        if "=" in line and "input" not in line:
+            var, val = line.split("=")
+            java_lines.append(f"    int {var.strip()} = {val.strip()};")
+
+        elif line.startswith("print("):
+            content = line[6:-1]
+            java_lines.append(f"    System.out.println({content});")
+
+        elif "input(" in line:
+            var = line.split("=")[0].strip()
+            java_lines.append("    Scanner scanner = new Scanner(System.in);")
+            java_lines.append(f"    String {var} = scanner.nextLine();")
+
+        elif line.startswith("if "):
+            condition = line[3:-1].strip()
+            java_lines.append(f"    if ({condition}) {{")
+
+        elif line.startswith("elif "):
+            condition = line[5:-1].strip()
+            java_lines.append(f"    }} else if ({condition}) {{")
+
+        elif line.startswith("else"):
+            java_lines.append("    } else {")
+
+        elif line.startswith("for "):
+            java_lines.append("    // for-loops not yet implemented")
+
+        elif line == "":
+            java_lines.append("")
+
+        else:
+            java_lines.append(f"    // {line}")
+
+    java_lines.append("  }")
+    java_lines.append("}")
+    return "\n".join(java_lines)
 
 @app.route("/convert", methods=["POST"])
 def convert():
