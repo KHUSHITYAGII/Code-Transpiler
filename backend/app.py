@@ -17,30 +17,44 @@ def python_to_cpp(code):
 
         if line.startswith("print("):
             content = line[6:-1]
-            cpp_lines.append(f"std::cout << {content} << std::endl;")
+            parts = [p.strip() for p in content.split(",")]
+            joined = " << \" \" << ".join(parts)
+            cpp_lines.append(f"std::cout << {joined} << std::endl;")
 
         elif "input(" in line:
             var = line.split("=")[0].strip()
             cpp_lines.append(f"std::string {var};")
             cpp_lines.append(f"std::cin >> {var};")
 
+        elif line.startswith("for ") and "in range(" in line:
+            loop_var = line.split("in")[0].replace("for", "").strip()
+            range_part = line.split("range(")[1].split(")")[0]
+            if "," in range_part:
+                parts = [x.strip() for x in range_part.split(",")]
+                if len(parts) == 2:
+                    start, end = parts
+                    cpp_lines.append(f"for (int {loop_var} = {start}; {loop_var} < {end}; {loop_var}++) {{")
+                elif len(parts) == 3:
+                    start, end, step = parts
+                    cpp_lines.append(f"for (int {loop_var} = {start}; {loop_var} < {end}; {loop_var} += {step}) {{")
+            else:
+                end = range_part.strip()
+                cpp_lines.append(f"for (int {loop_var} = 0; {loop_var} < {end}; {loop_var}++) {{")
+
         elif "=" in line:
             var, val = line.split("=")
             cpp_lines.append(f"int {var.strip()} = {val.strip()};")
 
         elif line.startswith("if "):
-            condition = line[3:-1].strip()
+            condition = line[3:].strip().rstrip(":")
             cpp_lines.append(f"if ({condition}) {{")
 
         elif line.startswith("elif "):
-            condition = line[5:-1].strip()
+            condition = line[5:].strip().rstrip(":")
             cpp_lines.append(f"}} else if ({condition}) {{")
 
         elif line.startswith("else"):
             cpp_lines.append("} else {")
-
-        elif line.startswith("for "):
-            cpp_lines.append("// for-loops not yet implemented")
 
         elif line == "":
             cpp_lines.append("")
@@ -48,42 +62,74 @@ def python_to_cpp(code):
         else:
             cpp_lines.append(f"// {line}")
 
+    cpp_lines.append("  }")
     cpp_lines.append("}")
     return "\n".join(cpp_lines)
 
 def python_to_java(code):
     lines = code.strip().split('\n')
-    java_lines = ["// Java code converted from Python:", "public class Main {", "  public static void main(String[] args) {"]
+    java_lines = [
+        "// Java code converted from Python:",
+        "import java.util.Scanner;",
+        "public class Main {",
+        "  public static void main(String[] args) {",
+        "    Scanner scanner = new Scanner(System.in);"
+    ]
+
+    declared_vars = set()
 
     for line in lines:
         line = line.strip()
 
-        if "=" in line and "input" not in line:
-            var, val = line.split("=")
-            java_lines.append(f"    int {var.strip()} = {val.strip()};")
+        if "input(" in line:
+            var = line.split("=")[0].strip()
+            if var not in declared_vars:
+                java_lines.append(f"    String {var} = scanner.nextLine();")
+                declared_vars.add(var)
+            else:
+                java_lines.append(f"    {var} = scanner.nextLine();")
 
         elif line.startswith("print("):
-            content = line[6:-1]
-            java_lines.append(f"    System.out.println({content});")
+            content = line[6:-1].strip()
+            parts = [p.strip() for p in content.split(",")]
+            joined = " + \" \" + ".join(parts)
+            java_lines.append(f"    System.out.println({joined});")
 
-        elif "input(" in line:
-            var = line.split("=")[0].strip()
-            java_lines.append("    Scanner scanner = new Scanner(System.in);")
-            java_lines.append(f"    String {var} = scanner.nextLine();")
+        elif line.startswith("for ") and "in range(" in line:
+            loop_var = line.split("in")[0].replace("for", "").strip()
+            range_part = line.split("range(")[1].split(")")[0]
+            if "," in range_part:
+                parts = [x.strip() for x in range_part.split(",")]
+                if len(parts) == 2:
+                    start, end = parts
+                    java_lines.append(f"    for (int {loop_var} = {start}; {loop_var} < {end}; {loop_var}++) {{")
+                elif len(parts) == 3:
+                    start, end, step = parts
+                    java_lines.append(f"    for (int {loop_var} = {start}; {loop_var} < {end}; {loop_var} += {step}) {{")
+            else:
+                end = range_part.strip()
+                java_lines.append(f"    for (int {loop_var} = 0; {loop_var} < {end}; {loop_var}++) {{")
+
+        elif "=" in line:
+            var, val = line.split("=")
+            var = var.strip()
+            val = val.strip()
+            if var not in declared_vars:
+                java_lines.append(f"    int {var} = {val};")
+                declared_vars.add(var)
+            else:
+                java_lines.append(f"    {var} = {val};")
 
         elif line.startswith("if "):
-            condition = line[3:-1].strip()
+            condition = line[3:].strip().rstrip(":")
             java_lines.append(f"    if ({condition}) {{")
 
         elif line.startswith("elif "):
-            condition = line[5:-1].strip()
+            condition = line[5:].strip().rstrip(":")
             java_lines.append(f"    }} else if ({condition}) {{")
 
         elif line.startswith("else"):
             java_lines.append("    } else {")
-
-        elif line.startswith("for "):
-            java_lines.append("    // for-loops not yet implemented")
 
         elif line == "":
             java_lines.append("")
