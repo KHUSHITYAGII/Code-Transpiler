@@ -12,16 +12,20 @@ function App() {
       setError("Please enter valid code.");
       return;
     }
+
     try {
       setError(""); // Clear previous errors
-      const response = await fetch("http://127.0.0.1:5000/api/convert", {
+
+      const response = await fetch("https://code-transpiler-2.onrender.com/convert", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code, sourceLang, targetLang }),
+        body: JSON.stringify({ code, source_lang: sourceLang, target_lang: targetLang }),  // keys should match backend
       });
+
       const data = await response.json();
+
       if (response.ok) {
-        setOutput(data.convertedCode);
+        setOutput(data.converted_code);  // keys should match backend
       } else {
         setError(data.error || "An error occurred during conversion.");
       }
@@ -34,14 +38,12 @@ function App() {
     <div className="container">
       <h1>Bidirectional Code Converter</h1>
 
-      {/* Input Section */}
       <textarea
         placeholder="Enter your code here..."
         value={code}
         onChange={(e) => setCode(e.target.value)}
-      />
+      ></textarea>
 
-      {/* Language Selection */}
       <div style={{ display: "flex", justifyContent: "space-between", marginTop: "10px" }}>
         <select value={sourceLang} onChange={(e) => setSourceLang(e.target.value)}>
           <option value="python">Python</option>
@@ -56,13 +58,10 @@ function App() {
         </select>
       </div>
 
-      {/* Convert Button */}
-      <button onClick={handleConvert}>Convert</button>
+      <button onClick={handleConvert} style={{ marginTop: "10px" }}>Convert</button>
 
-      {/* Error Notification */}
-      {error && <p className="error">{error}</p>}
+      {error && <p className="error" style={{ color: "red" }}>{error}</p>}
 
-      {/* Output Section */}
       <div className="output">
         <strong>Converted Code:</strong>
         <pre>{output || "Your converted code will appear here."}</pre>
